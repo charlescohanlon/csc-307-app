@@ -1,5 +1,5 @@
 import express from "express";
-import cors from "cors"
+import cors from "cors";
 
 const app = express();
 const port = 8000;
@@ -34,6 +34,12 @@ const users = {
   ],
 };
 
+const generateUID = () => {
+  const lastID = users["users_list"][users["users_list"].length - 1].id;
+  const lastIdx = parseInt(lastID.charAt(lastID.length - 1)) + 1;
+  return lastID + lastIdx;
+};
+
 const findUserByName = (name) => {
   return users["users_list"].filter((user) => user["name"] === name);
 };
@@ -46,6 +52,7 @@ const findUserById = (id) =>
   users["users_list"].find((user) => user["id"] === id);
 
 const addUser = (user) => {
+  user.id = generateUID();
   users["users_list"].push(user);
   return user;
 };
@@ -88,16 +95,22 @@ app.get("/users/:id", (req, res) => {
 
 app.delete("/users/:id", (req, res) => {
   const id = req.params["id"];
-  if (!removeUserById(id)) {
+  if (removeUserById(id) === undefined) {
     res.status(404).send("Resource not found.");
+  } else {
+    res.status(204).send();
   }
-  res.send();
 });
 
 app.post("/users", (req, res) => {
-  const userToAdd = req.body;
-  addUser(userToAdd);
-  res.send();
+  try {
+    const userToAdd = req.body;
+    const newUser = addUser(userToAdd);
+    res.status(201).send(JSON.stringify(newUser));
+  } catch (err) {
+    console.log(err);
+    res.status(500).send();
+  }
 });
 
 app.listen(port, () => {

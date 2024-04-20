@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Table from "./table";
 import Form from "./Form";
 
@@ -6,24 +6,29 @@ function MyApp() {
   const [characters, setCharacters] = useState([]);
 
   useEffect(() => {
-    fetchUsers()
-      .then((res) => res.json())
-      .then((json) => setCharacters(json["users_list"]))
-      .catch((error) => {
-        console.log(error);
-      });
+    (async () => {
+      try {
+        const res = await fetchUsers();
+        const json = await res.json();
+        setCharacters(json["users_list"]);
+      } catch (err) {
+        console.log(err);
+      }
+    })();
   }, []);
 
-  function removeOneCharacter(index) {
-    const updated = characters.filter((character, i) => {
-      return i !== index;
-    });
-    setCharacters(updated);
-  }
-
-  function updateList(person) {
-    setCharacters([...characters, person]);
-  }
+  const removeOneCharacter = useCallback(async (index) => {
+    const res = await fetch(
+      `http://localhost:8000/users/${characters[index].id}`,
+      { method: "DELETE" }
+    );
+    if (res.status === 204) {
+      const updated = characters.filter((character, i) => {
+        return i !== index;
+      });
+      setCharacters(updated);
+    }
+  });
 
   function fetchUsers() {
     const promise = fetch("http://localhost:8000/users");
@@ -38,16 +43,19 @@ function MyApp() {
       },
       body: JSON.stringify(person),
     });
-
     return promise;
   }
 
-  function updateList(person) {
-    postUser(person)
-      .then(() => setCharacters([...characters, person]))
-      .catch((error) => {
-        console.log(error);
-      });
+  async function updateList(person) {
+    try {
+      const res = await postUser(person);
+      if (res.status == 201) {
+        const newPerson = await res.json();
+        setCharacters([...characters, newPerson]);
+      }
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   return (
