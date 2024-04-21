@@ -22,7 +22,7 @@ function MyApp() {
       `http://localhost:8000/users/${characters[index].id}`,
       { method: "DELETE" }
     );
-    if (res.status === 204) {
+    if (res.status == 204) {
       const updated = characters.filter((character, i) => {
         return i !== index;
       });
