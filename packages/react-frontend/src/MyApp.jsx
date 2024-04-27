@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import Table from "./table";
 import Form from "./Form";
 
@@ -17,9 +17,9 @@ function MyApp() {
     })();
   }, []);
 
-  const removeOneCharacter = useCallback(async (index) => {
+  const removeOneCharacter = async (index) => {
     const res = await fetch(
-      `http://localhost:8000/users/${characters[index].id}`,
+      `http://localhost:8000/users/${characters[index]._id}`,
       { method: "DELETE" }
     );
     if (res.status == 204) {
@@ -28,7 +28,7 @@ function MyApp() {
       });
       setCharacters(updated);
     }
-  });
+  };
 
   function fetchUsers() {
     const promise = fetch("http://localhost:8000/users");
